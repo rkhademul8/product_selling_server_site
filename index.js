@@ -23,7 +23,7 @@ async function run() {
       const database = client.db("productsDb");
       const productCollection = database.collection("products");
       const orderCollection = database.collection("orders");
-
+      const userCollection = database.collection("users");
 
       //  order get 
       // http://localhost:5000/orders?email=riya@gmail.com
@@ -35,15 +35,63 @@ async function run() {
         res.json(order)
       })
 
+      // special user findout
+
+      // http://localhost:5000/users/riya@gmail.com
+
+      app.get('/users/:email', async(req,res)=>{
+        const email=req.params.email
+        const query={email:email}
+        const user=await userCollection.findOne(query)
+        let isAdmin=false
+        if(user?.roll === 'admin'){
+          isAdmin=true
+        }
+
+       res.json({admin:isAdmin})
+      })
+
+
+      // save user to database
+      app.post('/users', async(req,res)=>{
+        const user=req.body
+        console.log(user);
+        const result=await userCollection.insertOne(user)
+        res.json(result)
+      })
+
+      // save user to databse with google signin
+      app.put('/users', async(req,res)=>{
+        const user=req.body
+        // console.log(user);
+        const filter={email:user.email}
+        const options={upsert:true}
+        const updateDoc={$set:user}
+        const result= await userCollection.updateOne(filter,updateDoc,options)
+
+        res.json(result)
+
+
+      })
 
       // order post
       app.post('/orders', async(req,res)=>{
         const orders=req.body
-        // console.log(orders);
         const result=await orderCollection.insertOne(orders)
-
+        // console.log(result);
         res.json(result)
 
+      })
+
+
+      // make admin 
+      app.put('/user/admin', async(req,res)=>{
+        const user=req.body
+        console.log(user);
+        const filter={email:user.email} 
+        const updateDoc={$set:{roll:'admin'}}
+        const result=await userCollection.updateOne(filter,updateDoc)
+        res.json(result)
       })
 
 
