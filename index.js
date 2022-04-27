@@ -3,11 +3,17 @@ const express = require('express')
 const app = express()
 const cors=require('cors');
 require('dotenv').config()
+
+const ObjectId=require('mongodb').ObjectId
+const fileUpload=require('express-fileupload')
+
+
 const port = process.env.PORT || 5000
 
 // middleware
 app.use(cors());
 app.use(express.json())
+app.use(fileUpload())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pptx3.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -25,6 +31,17 @@ async function run() {
       const orderCollection = database.collection("orders");
       const userCollection = database.collection("users");
 
+
+
+      //  get price using _id
+
+      app.get('/orders/:id',async(req,res)=>{
+        const id= req.params.id
+        const query= { _id: ObjectId(id)}
+        const result=await orderCollection .findOne(query)
+        res.json(result)
+      })
+
       //  order get 
       // http://localhost:5000/orders?email=riya@gmail.com
       app.get('/orders', async(req,res)=>{
@@ -35,7 +52,47 @@ async function run() {
         res.json(order)
       })
 
-      // special user findout
+
+      // add product to database
+
+      app.post('/products', async(req,res)=>{
+        // console.log('body', req.body);
+        // console.log('files', req.files);
+
+        const productName=req.body.productName
+        const productDescrip=req.body.productDescrip
+        const productPrice=req.body.productPrice
+        
+        const pic=req.files.image
+        const picData=pic.data
+        const encodePic=picData.toString('base64')
+
+        const imageBuffer=Buffer.from(encodePic, 'base64')
+
+        const product={
+          productName,
+          productDescrip,
+          productPrice,
+          image:imageBuffer
+        }
+
+        const result=await productCollection.insertOne(product)
+
+        res.json(result)
+      })
+
+
+      // get product from database
+
+      app.get('/products', async(req,res)=>{
+
+        const cursor= productCollection.find({})
+        const product=await cursor.toArray()
+        res.json(product)
+      })
+
+
+      //  Admin or normal user findout
 
       // http://localhost:5000/users/riya@gmail.com
 
@@ -50,6 +107,7 @@ async function run() {
 
        res.json({admin:isAdmin})
       })
+
 
 
       // save user to database
@@ -73,6 +131,8 @@ async function run() {
 
 
       })
+
+      
 
       // order post
       app.post('/orders', async(req,res)=>{
