@@ -156,7 +156,13 @@ async function run() {
 
       // delete product from database
 
-      
+      app.delete('/products/:id', async(req,res)=>{
+          const id=req.params.id
+          // console.log(id);
+          const query={_id:ObjectId(id)}
+          const result=await productCollection.deleteOne(query)
+          res.json(result)
+      })
 
    
     } finally {
