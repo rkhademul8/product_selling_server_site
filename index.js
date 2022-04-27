@@ -154,6 +154,9 @@ async function run() {
         res.json(result)
       })
 
+      // delete product from database
+
+      
 
    
     } finally {
