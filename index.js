@@ -154,8 +154,40 @@ async function run() {
         res.json(result)
       })
 
-      // delete product from database
 
+      // get product with id
+
+      app.get('/products/:id',async(req,res)=>{
+        const id=req.params.id
+        const query={_id:ObjectId(id)}
+        const product=await productCollection.findOne(query)
+        // console.log("Load user with id",id);
+        res.send(product)
+      })
+
+      // update product
+
+      app.put('/products/:id',async(req,res)=>{
+        const id=req.params.id
+        // console.log('updated user id',id);
+
+        const updatedUser=req.body
+        const filter={_id:ObjectId(id)}
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            productName:updatedUser.productName,
+            productDescrip:updatedUser.productDescrip,
+            productPrice:updatedUser.productPrice,
+          },
+        };
+        const result=await productCollection.updateOne(filter,updateDoc,options)
+        
+        res.json(result)
+      })
+
+
+      // delete product from database
       app.delete('/products/:id', async(req,res)=>{
           const id=req.params.id
           // console.log(id);
