@@ -30,6 +30,8 @@ async function run() {
       const productCollection = database.collection("products");
       const orderCollection = database.collection("orders");
       const userCollection = database.collection("users");
+      const paymentsCollection = database.collection("payments");
+
 
 
 
@@ -39,6 +41,21 @@ async function run() {
         const id= req.params.id
         const query= { _id: ObjectId(id)}
         const result=await orderCollection .findOne(query)
+        res.json(result)
+      })
+
+
+      // update order for payment
+      app.put('/orders/:id',async(req,res)=>{
+        const id=req.params.id
+        const payment=req.body;
+        const filter={_id:ObjectId(id)}
+        const updateDoc={
+          $set:{
+            payment:payment
+          }
+        }
+        const result=await orderCollection.updateOne(filter,updateDoc)
         res.json(result)
       })
 
@@ -142,6 +159,17 @@ async function run() {
         res.json(result)
 
       })
+
+      // payment post
+      app.post('/payments',async(req,res)=>{
+          const payments=req.body
+          // console.log(payments);
+          const result=await paymentsCollection.insertOne(payments)
+          res.json(result)
+      })
+
+
+  
 
 
       // make admin 
